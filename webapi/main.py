@@ -223,7 +223,7 @@ def _generate_invoice_pdf(doc: dict, fpath: str):
     
     # --- Header Section ---
     # Logo (if exists)
-    logo_path = os.path.join(PROJECT_ROOT, "logo.png")
+    logo_path = os.path.join(BRANDING_DIR, "logo.png")
     if os.path.exists(logo_path):
         try:
             c.drawImage(logo_path, 50, h - 80, width=120, preserveAspectRatio=True, mask='auto')
@@ -376,6 +376,18 @@ def _generate_invoice_pdf(doc: dict, fpath: str):
 
 @app.post("/invoices")
 def create_invoice(payload: InvoiceIn):
+    # Detect environment for terminal name
+    import socket
+    is_render = os.getenv("RENDER") == "true"
+    if payload.terminal_name == "Web":
+        if is_render:
+            payload.terminal_name = "Cloud"
+        else:
+            try:
+                payload.terminal_name = socket.gethostname()
+            except Exception:
+                payload.terminal_name = "LocalPC"
+    
     # auto invoice number
     inv_no = None
     try:
