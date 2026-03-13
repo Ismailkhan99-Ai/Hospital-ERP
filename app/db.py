@@ -66,7 +66,9 @@ def search_patients(reg_no: str = None, mobile: str = None) -> list:
     if reg_no:
         query["reg_no"] = {"$regex": f"^{re.escape(reg_no)}", "$options": "i"}
     if mobile:
-        query["contact_number"] = {"$regex": f"^{re.escape(mobile)}", "$options": "i"}
+        # Remove leading zero if present to allow searching both formats
+        clean_mobile = mobile.lstrip('0')
+        query["contact_number"] = {"$regex": re.escape(clean_mobile), "$options": "i"}
     return list(col.find(query).limit(50))
 
 def get_lookups(collection_name: str) -> list:
