@@ -8,8 +8,10 @@ from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Correct project root to access logo.png which is one level above PT-Reg/
-PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+# Correct project root to access branding/ folder inside PT-Reg/
+BRANDING_DIR = os.path.join(os.path.dirname(BASE_DIR), "branding")
+os.makedirs(BRANDING_DIR, exist_ok=True)
+
 APP_DIR = os.path.join(os.path.dirname(BASE_DIR), "app")
 if APP_DIR not in sys.path:
     sys.path.insert(0, APP_DIR)
@@ -34,8 +36,8 @@ INVOICE_DIR = os.path.join(BASE_DIR, "invoices")
 os.makedirs(INVOICE_DIR, exist_ok=True)
 app.mount("/files", StaticFiles(directory=INVOICE_DIR, html=False), name="files")
 
-# Mount project root directory to serve branding assets like the logo
-app.mount("/branding", StaticFiles(directory=PROJECT_ROOT, html=False), name="branding")
+# Mount branding folder correctly
+app.mount("/branding", StaticFiles(directory=BRANDING_DIR, html=False), name="branding")
 
 
 @app.get("/")
