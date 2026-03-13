@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AMI Medical Center Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#f4f7fb; min-height: 100vh; display: flex; flex-direction: column;}
+    .sidebar{width:68px;background:#0e3a5d;position:fixed;left:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;padding-top:14px; z-index: 10;}
+    .sbtn{width:48px;height:48px;border-radius:50%;background:#114b78;color:#fff;display:flex;align-items:center;justify-content:center;margin:10px 0;cursor:pointer}
+    .sbtn:hover{background:#195a8e}
+    .content{margin-left:84px; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 1;}
+    .header{background:#fff;border-bottom:1px solid #e5edf5}
+    .brand{font-weight:700;color:#244a7c}
+    .center-lbl{color:#244a7c;margin-left:12px}
+    .tile{background:#fff;border-radius:12px;box-shadow:0 6px 12px rgba(25,42,62,.08);padding:22px;text-align:center;cursor:pointer;transition:all .2s; position: relative; z-index: 2;}
+    .tile:hover{transform:translateY(-2px);background:#e5f0ff}
+    .tile .icon{font-size:30px}
+    .tile .label{margin-top:10px;font-weight:700;color:#2d557d}
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+      width: 80vw;
+      height: 80vh;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <img src="/branding/logo.png" class="watermark" alt="Watermark">
+  <div class="sidebar" id="dynamicSidebar">
+    <!-- Dynamic Sidebar Icons -->
+  </div>
+  <div class="content">
+    <div class="header py-3 px-4 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <img src="/branding/logo.png" alt="Logo" class="me-3" style="height: 60px;">
+        <div>
+          <div class="brand h5 mb-0">AMI Medical Center</div>
+          <div class="center-lbl small italic opacity-75">"Your Health, Our Commitment."</div>
+        </div>
+      </div>
+      <div class="dropdown">
+        <div id="userInfo" class="dropdown-toggle cursor-pointer" data-bs-toggle="dropdown">Admin ▾</div>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+          <li><a class="dropdown-item py-2" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container py-4 flex-grow-1">
+      <div class="row g-3" id="dynamicTiles">
+        <!-- Dynamic Tiles Based on Rights -->
+      </div>
+    </div>
+    <footer class="mt-auto py-3 text-center border-top bg-white" style="position: relative; z-index: 2;">
+      <small class="text-muted">Developed by <b>AMI Technologies</b> – “Technology That Powers Your Business.”</small>
+    </footer>
+  </div>
+
+  <!-- Cash Summary Modal -->
+  <div class="modal fade" id="cashSummaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">My Cash Summary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3 p-2 bg-light rounded border">
+            <div class="row">
+              <div class="col-6"><b>User:</b> <span id="sum_user"></span></div>
+              <div class="col-6 text-end"><b>Shift Start:</b> <span id="sum_start"></span></div>
+            </div>
+          </div>
+          
+          <h6>Service Details</h6>
+          <div class="table-responsive mb-3" style="max-height: 200px;">
+            <table class="table table-sm table-striped border">
+              <thead class="table-light sticky-top">
+                <tr><th>Reg No</th><th>Patient</th><th>Service</th><th class="text-end">Discount</th><th class="text-end">Amount</th></tr>
+              </thead>
+              <tbody id="sum_invoices"></tbody>
+            </table>
+          </div>
+
+          <h6>Refund Details</h6>
+          <div class="table-responsive mb-3" style="max-height: 150px;">
+            <table class="table table-sm table-striped border">
+              <thead class="table-light sticky-top">
+                <tr><th>Reg No</th><th>Patient</th><th>Reason</th><th class="text-end">Amount</th></tr>
+              </thead>
+              <tbody id="sum_refunds"></tbody>
+            </table>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 offset-md-6">
+              <table class="table table-bordered table-sm">
+                <tr><th class="bg-light">Total Discount</th><td id="sum_total_discount" class="text-end fw-bold text-danger">0.00</td></tr>
+                <tr><th class="bg-light">Gross Cash</th><td id="sum_gross" class="text-end fw-bold">0.00</td></tr>
+                <tr><th class="bg-light">Total Refund</th><td id="sum_total_refund" class="text-end fw-bold text-danger">0.00</td></tr>
+                <tr class="table-primary"><th class="fw-bold">Net Collection</th><td id="sum_net" class="text-end fw-bold">0.00</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="window.print()">Print Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const api = (p, opt={}) => fetch(p, opt).then(r => r.ok ? r.json() : r.json().then(j=>{throw new Error(j.detail || 'Error')}));
+    
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('rights');
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const username = localStorage.getItem('username');
+      if (!username) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const cashModal = new bootstrap.Modal(document.getElementById('cashSummaryModal'));
+      document.getElementById('userInfo').textContent = `${username} ▾`;
+
+      // Load Modules/Rights
+      try {
+        let rightsStr = localStorage.getItem('rights');
+        let userRights = [];
+        try {
+          userRights = rightsStr ? JSON.parse(rightsStr) : ["patient_registration", "invoice", "search", "reports"];
+        } catch (e) {
+          userRights = ["patient_registration", "invoice", "search", "reports"];
+        }
+        
+        if (username === 'admin') userRights = ['*'];
+
+        const hasRight = (key) => userRights.includes('*') || userRights.includes(key);
+
+        const tileConfig = [
+          {key: 'appointment', icon: '📅', label: 'Appointment', href: '#'},
+          {key: 'patient_registration', icon: '📝', label: 'Patient Registration', href: 'patient.html'},
+          {key: 'search', icon: '🔍', label: 'Search Patients', href: 'search.html'},
+          {key: 'clinical', icon: '🧑‍⚕️', label: 'Clinical Management', href: 'clinical.html'},
+          {key: 'daycare', icon: '🛏️', label: 'Day Care', href: '#'},
+          {key: 'invoice', icon: '🧾', label: 'Invoice / Service', href: 'invoice.html'},
+          {key: 'cash_summary', icon: '💰', label: 'Cash Summary', action: () => { updateSummary(); cashModal.show(); }},
+          {key: 'ot', icon: '🩺', label: 'Operation Theatre', href: '#'},
+          {key: 'insurance', icon: '🛡️', label: 'Insurance and eClaim', href: '#'},
+          {key: 'phlebotomy', icon: '💉', label: 'Phlebotomy', href: '#'},
+          {key: 'lab', icon: '🧪', label: 'Laboratory', href: '#'},
+          {key: 'bloodbank', icon: '🩸', label: 'Blood Bank', href: '#'},
+          {key: 'radiology', icon: '🩻', label: 'Radiology', href: '#'},
+          {key: 'inventory', icon: '📦', label: 'Inventory', href: '#'},
+          {key: 'reports', icon: '📊', label: 'MIS Reports', href: 'reports.html'},
+          {key: 'nurse', icon: '👩‍⚕️', label: 'Nurse Station', href: '#'},
+          {key: 'inventory_setup', icon: '🛠️', label: 'Inventory Setup', href: '#'},
+          {key: 'discharge', icon: '📄', label: 'Discharge Summary', href: '#'},
+          {key: 'custom', icon: '✅', label: 'Custom Template', href: '#'},
+          {key: 'software', icon: '⚙️', label: 'Software Management', href: 'admin.html'},
+        ];
+
+        const tilesCont = document.getElementById('dynamicTiles');
+        const sidebarCont = document.getElementById('dynamicSidebar');
+        
+        tileConfig.forEach(t => {
+          if (t.key === 'cash_summary' || hasRight(t.key)) {
+            // Add Tile
+            const col = document.createElement('div');
+            col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2';
+            const a = document.createElement('a');
+            a.className = 'tile text-decoration-none d-block';
+            if (t.href) a.href = t.href;
+            if (t.action) a.onclick = t.action;
+            a.innerHTML = `<div class="icon">${t.icon}</div><div class="label">${t.label}</div>`;
+            col.appendChild(a);
+            tilesCont.appendChild(col);
+
+            // Add Sidebar Icon (simplified list)
+            if (['patient_registration', 'invoice', 'search', 'reports', 'software', 'cash_summary'].includes(t.key)) {
+              const sbtn = document.createElement('div');
+              sbtn.className = 'sbtn';
+              sbtn.title = t.label;
+              sbtn.textContent = t.icon;
+              sbtn.onclick = t.action ? t.action : () => window.location.href = t.href;
+              sidebarCont.appendChild(sbtn);
+            }
+          }
+        });
+
+        // Load Summary Data
+        async function updateSummary() {
+          try {
+            const shift = await api(`/shifts/current?username=${username}`);
+            if (shift.active && shift.summary) {
+              const s = shift.summary;
+              document.getElementById('sum_user').textContent = username;
+              document.getElementById('sum_start').textContent = new Date(shift.start_time).toLocaleString();
+              
+              // Fill Invoices
+              const invBody = document.getElementById('sum_invoices');
+              invBody.innerHTML = '';
+              s.invoices.forEach(i => {
+                invBody.innerHTML += `<tr><td>${i.reg_no}</td><td>${i.patient_name}</td><td>${i.service}</td><td class="text-end">${i.discount.toFixed(2)}</td><td class="text-end">${i.amount.toFixed(2)}</td></tr>`;
+              });
+              
+              // Fill Refunds
+              const refBody = document.getElementById('sum_refunds');
+              refBody.innerHTML = '';
+              s.refunds.forEach(r => {
+                refBody.innerHTML += `<tr><td>${r.reg_no}</td><td>${r.patient_name}</td><td>${r.reason}</td><td class="text-end">${r.amount.toFixed(2)}</td></tr>`;
+              });
+
+              document.getElementById('sum_total_discount').textContent = s.total_discount.toFixed(2);
+              document.getElementById('sum_gross').textContent = (s.cash_received + s.card_received).toFixed(2);
+              document.getElementById('sum_total_refund').textContent = s.total_refunded.toFixed(2);
+              document.getElementById('sum_net').textContent = s.net_collection.toFixed(2);
+            }
+          } catch (e) { console.error(e); }
+        }
+
+      } catch (e) { console.error(e); }
+    });
+  </script>
+</body>
+</html>

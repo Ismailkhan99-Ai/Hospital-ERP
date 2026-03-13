@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+.sqlite
+*.log
+invoices/
+app/invoices/
+webapi/invoices/
+.vscode/
+.idea/
+.DS_Store

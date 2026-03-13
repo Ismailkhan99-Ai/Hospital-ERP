@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Registration</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body{background:linear-gradient(180deg,#eef5ff,#f7fbff);}
+    .pr-card{border:none;border-radius:18px;box-shadow:0 18px 40px rgba(31,75,138,.12)}
+    .pr-header{background:linear-gradient(135deg,#1b68e5,#39a0ff);color:#fff;border-top-left-radius:18px;border-top-right-radius:18px;padding:18px 22px}
+    .pr-sub{opacity:.9;font-size:.95rem}
+    .pr-body{padding:22px}
+    .required::after{content:" *";color:#e74c3c}
+    .pill .form-control,.pill .form-select{border-radius:12px}
+    .icon-box{width:42px;display:flex;align-items:center;justify-content:center;color:#1f4b8a}
+    .btn-primary{background:#1f6feb;border-color:#1f6feb}
+    .btn-primary:hover{background:#175bd0;border-color:#175bd0}
+    .btn-outline-secondary{border-color:#d7e1ee;color:#2d557d}
+    .btn-outline-secondary:hover{background:#f2f6fb}
+    .hero{min-height:100%;display:flex;align-items:center;justify-content:center}
+    .hero-blob{width:100%;max-width:340px;border-radius:28px;background: #fff;display:flex;align-items:center;justify-content:center; box-shadow: 0 10px 30px rgba(31,75,138,.1); padding: 20px;}
+    .hero-emoji{font-size:92px}
+    .toolbar{display:flex;gap:12px;justify-content:end}
+    .form-section-title{font-weight:700;color:#244a7c;margin:0 0 6px 0}
+    .quickbox{background:#f1f6ff;border:1px solid #d8e6ff;padding:14px;border-radius:12px;box-shadow:0 6px 16px rgba(31,75,138,.08)}
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-white border-bottom mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="index.html">
+        <img src="/branding/logo.png" alt="Logo" class="me-2" style="height: 40px;">
+        AMI Medical Center
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">🏠 Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="patient.html">📝 Registration</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="clinical.html">🧑‍⚕️ Clinical</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="invoice.html">🧾 Billing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="search.html">🔍 Search</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="reports.html">📊 Reports</a>
+          </li>
+        </ul>
+        <div class="dropdown me-3">
+          <button class="btn btn-light dropdown-toggle btn-sm fw-bold text-primary" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> <span id="userDisplay">User</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+            <li><a class="dropdown-item py-2" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+          </ul>
+        </div>
+        <span class="navbar-text d-none d-lg-inline">"Your Health, Our Commitment."</span>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="pr-card">
+      <div class="pr-header">
+        <div class="h4 mb-1">Patient Registration</div>
+        <div class="pr-sub">Add New Patient Record</div>
+      </div>
+      <div class="pr-body">
+        <div class="row g-4 pill">
+          <div class="col-lg-4 d-none d-lg-flex">
+            <div class="hero w-100">
+              <div class="hero-blob">
+                <img src="/branding/logo.png" alt="Logo" style="width: 100%; max-width: 220px;">
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <div class="quickbox mb-3">
+              <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                  <label class="form-label">Quick Search</label>
+                  <select id="search_mode" class="form-select">
+                    <option>Mobile</option>
+                    <option>Registration</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">&nbsp;</label>
+                  <input id="search_query" class="form-control" type="text" placeholder="Enter mobile or registration no">
+                </div>
+                <div class="col-md-3">
+                  <button class="btn btn-outline-secondary w-100" type="button" id="btnTopSearch">Search</button>
+                </div>
+              </div>
+              <div id="topResults" class="list-group mt-3" style="display:none"></div>
+            </div>
+            <form id="prForm" class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Registration No</label>
+                <input id="reg_no" class="form-control" type="text" readonly placeholder="Assigned on save">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Type</label>
+                <div class="input-group">
+                  <span class="icon-box"><i class="bi bi-people"></i></span>
+                  <select id="patient_type" class="form-select">
+                    <option>Private</option>
+                    <option>Company</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Company Name</label>
+                <input id="company_name" class="form-control" type="text" disabled>
+              </div>
+
+              <div class="col-12"><div class="form-section-title">Patient Details</div></div>
+
+              <div class="col-md-2">
+                <label class="form-label">Title</label>
+                <select id="title" class="form-select">
+                  <option value=""></option>
+                  <option>Mr.</option><option>Mrs.</option><option>Miss</option><option>Ms.</option>
+                  <option>Master</option><option>Baby</option><option>Sir</option><option>Madam</option><option>Mx.</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label required">Full Name</label>
+                <input id="first_name" name="first_name" class="form-control" type="text" placeholder="Enter full name">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Middle Name</label>
+                <input id="middle_name" class="form-control" type="text">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Last Name</label>
+                <input id="last_name" class="form-control" type="text">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Father/Husband Name</label>
+                <input id="guardian" class="form-control" type="text">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label required">Gender</label>
+                <select id="gender" class="form-select">
+                  <option value=""></option><option>Male</option><option>Female</option><option>Other</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label required">Contact Number</label>
+                 <input id="contact_number" class="form-control" type="text" placeholder="03001234567" maxlength="11" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Date of Birth</label>
+                <input id="dob" class="form-control" type="text" placeholder="">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Age Unit</label>
+                <select id="age_unit" class="form-select">
+                  <option>Years</option><option>Months</option><option>Days</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                  <label class="form-label">Age</label>
+                  <input id="age_value" class="form-control" type="text" inputmode="numeric">
+              </div>
+              <div class="col-md-4">
+                  <label class="form-label">CNIC (13 digits)</label>
+                  <input id="cnic" class="form-control" type="text" maxlength="13">
+              </div>
+              <div class="col-md-8">
+                <label class="form-label">Address</label>
+                <textarea id="address" class="form-control" rows="2" placeholder="Enter address"></textarea>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Blood Group</label>
+                <select id="blood_group" class="form-select">
+                  <option value=""></option><option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                  <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Doctor</label>
+                <select id="referring_doctor" class="form-select"></select>
+              </div>
+
+              <div class="col-12 d-flex align-items-center justify-content-between mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="addAnother">
+                  <label class="form-check-label" for="addAnother">Save & Add Another</label>
+                </div>
+                <div class="toolbar">
+                  <a class="btn btn-success" id="btnInvoiceLink">Invoice / Service</a>
+                  <button class="btn btn-outline-secondary" type="button" id="btnClear"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                  <button class="btn btn-primary" type="submit" id="btnSave"><i class="bi bi-check2-circle"></i> Register</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const api = (p, opt={}) => fetch(p, opt).then(r => r.ok ? r.json() : r.json().then(j=>{throw new Error(j.detail || 'Error')}));
+
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('rights');
+      window.location.href = 'login.html';
+    }
+
+    function pad(n){ return n < 10 ? '0'+n : ''+n }
+    function parseDob(str){
+      const m = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(str || '');
+      if(!m) return null;
+      const d = new Date(parseInt(m[3],10), parseInt(m[2],10)-1, parseInt(m[1],10));
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function fmtDob(d){ return pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear() }
+    function computeAgeFromDob(dob, unit){
+      const today = new Date();
+      if(unit === 'Days'){
+        const ms = today - dob; return Math.max(Math.floor(ms/86400000),0);
+      }
+      const months = (today.getFullYear()-dob.getFullYear())*12 + (today.getMonth()-dob.getMonth()) - (today.getDate() < dob.getDate() ? 1 : 0);
+      if(unit === 'Months') return Math.max(months,0);
+      return Math.max(Math.floor(months/12),0);
+    }
+    function computeDobFromAge(age, unit){
+      const today = new Date();
+      if(unit === 'Days'){ const d = new Date(today); d.setDate(d.getDate()-age); return d; }
+      if(unit === 'Months'){
+        let y = today.getFullYear(), m = today.getMonth() - age, day = today.getDate();
+        while(m < 0){ m += 12; y -= 1; }
+        const d = new Date(y, m, day);
+        if(d.getMonth() !== m){ return new Date(y, m+1, 0); }
+        return d;
+      }
+      return new Date(today.getFullYear()-age, today.getMonth(), today.getDate());
+    }
+
+    async function loadLookups(){
+      try{
+        const preview = await api('/registration/preview');
+        document.getElementById('reg_no').value = preview.reg_no || '';
+      }catch(e){ document.getElementById('reg_no').placeholder = 'Assigned on save'; }
+      try{
+        const docs = await api('/lookups/referring-doctors');
+        const sel = document.getElementById('referring_doctor');
+        sel.innerHTML = '';
+        (['SELF', ...(docs || [])]).forEach(n => {
+          const opt = document.createElement('option'); opt.value = n; opt.textContent = n; sel.appendChild(opt);
+        });
+      }catch(e){
+        const sel = document.getElementById('referring_doctor');
+        sel.innerHTML = '<option>SELF</option>';
+      }
+    }
+
+    function validate(form){
+      const first = form.first_name.value.trim();
+      const gender = form.gender.value.trim();
+      const contact = form.contact_number.value.trim();
+      const patient_type = form.patient_type.value.trim();
+      const company = form.company_name.value.trim();
+      const dobStr = form.dob.value.trim();
+      const ageVal = form.age_value.value.trim();
+      const ageUnit = form.age_unit.value.trim();
+      const cnic = form.cnic.value.trim();
+      if(!first) return 'Patient Name is required';
+      if(!gender) return 'Select Gender';
+      if(contact && !/^\d{10,11}$/.test(contact)) return 'Contact Number must be 10–11 digits';
+      if(patient_type === 'Company' && !company) return 'Company Name is required for Company Type';
+      if(dobStr){
+        if(!/^\d{1,2}-\d{1,2}-\d{4}$/.test(dobStr)) return 'DOB must be DD-MM-YYYY';
+        if(!parseDob(dobStr)) return 'Invalid DOB date';
+      }else{
+        if(!ageVal || !/^\d+$/.test(ageVal)) return 'Enter numeric Age or DOB';
+        if(!['Days','Months','Years'].includes(ageUnit)) return 'Select Age Unit';
+      }
+      if(cnic && !/^\d{13}$/.test(cnic)) return 'CNIC must be 13 digits';
+      return null;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const username = localStorage.getItem('username');
+      if (!username) {
+        window.location.href = 'login.html';
+        return;
+      }
+      document.getElementById('userDisplay').textContent = username;
+
+      const f = document.getElementById('prForm');
+      const typeSel = document.getElementById('patient_type');
+      const company = document.getElementById('company_name');
+      const title = document.getElementById('title');
+      const gender = document.getElementById('gender');
+      const dob = document.getElementById('dob');
+      const ageUnit = document.getElementById('age_unit');
+      const ageVal = document.getElementById('age_value');
+      let editing = false;
+
+      function resetForm(keepType=false){
+        const type = keepType ? typeSel.value : 'Private';
+        f.reset();
+        editing = false;
+        company.disabled = true;
+        ageUnit.value = 'Years';
+        typeSel.value = type;
+        loadLookups();
+      }
+
+      typeSel.addEventListener('change', () => {
+        company.disabled = typeSel.value !== 'Company';
+        if(company.disabled) company.value = '';
+      });
+      title.addEventListener('change', () => {
+        const t = title.value;
+        if(['Mr.','Master','Sir'].includes(t)) gender.value = 'Male';
+        else if(['Mrs.','Miss','Ms.','Madam'].includes(t)) gender.value = 'Female';
+      });
+      dob.addEventListener('input', () => {
+        const d = parseDob(dob.value.trim()); if(!d) return;
+        const months = computeAgeFromDob(d,'Months');
+        if(months >= 12){ ageUnit.value = 'Years'; ageVal.value = computeAgeFromDob(d,'Years'); }
+        else if(months > 0){ ageUnit.value = 'Months'; ageVal.value = months; }
+        else { ageUnit.value = 'Days'; ageVal.value = computeAgeFromDob(d,'Days'); }
+      });
+      ageVal.addEventListener('input', () => {
+        const s = ageVal.value.trim(); if(!/^\d+$/.test(s)) return;
+        const d = computeDobFromAge(parseInt(s,10), ageUnit.value.trim());
+        dob.value = fmtDob(d);
+      });
+      ageUnit.addEventListener('change', () => {
+        const s = ageVal.value.trim(); if(!/^\d+$/.test(s)) return;
+        const d = computeDobFromAge(parseInt(s,10), ageUnit.value.trim());
+        dob.value = fmtDob(d);
+      });
+
+      async function quickSearch(){
+        const mode = document.getElementById('search_mode').value;
+        const q = document.getElementById('search_query').value.trim();
+        const box = document.getElementById('topResults');
+        box.innerHTML = '';
+        if(!q){ box.style.display='none'; return; }
+        let url = '/patients?' + (mode === 'Mobile' ? 'mobile=' : 'reg_no=') + encodeURIComponent(q);
+        try{
+          const rows = await api(url);
+          rows.forEach(r => {
+            const a = document.createElement('a');
+            a.className = 'list-group-item list-group-item-action';
+            const fullName = [r.title, r.first_name, r.middle_name, r.last_name].filter(Boolean).join(' ');
+            a.textContent = `${r.reg_no || ''} — ${fullName} (${r.contact_number || ''})`;
+            a.addEventListener('click', async () => {
+              try{
+                const p = await api('/patients/' + encodeURIComponent(r.reg_no || ''));
+                fillForm(p);
+                box.style.display='none';
+              }catch(e){ alert('Error: ' + e.message); }
+            });
+            box.appendChild(a);
+          });
+          box.style.display = rows.length ? 'block' : 'none';
+        }catch(e){ alert('Error: ' + e.message); }
+      }
+      document.getElementById('btnTopSearch').addEventListener('click', quickSearch);
+
+      document.getElementById('btnInvoiceLink').addEventListener('click', () => {
+        const reg = document.getElementById('reg_no').value.trim();
+        const name = [document.getElementById('title').value.trim(), document.getElementById('first_name').value.trim(), document.getElementById('middle_name').value.trim(), document.getElementById('last_name').value.trim()].filter(Boolean).join(' ').replace(/\s+/g,' ');
+        const params = new URLSearchParams();
+        if(reg) params.set('reg_no', reg);
+        if(name) params.set('patient_name', name);
+        window.location.href = 'invoice.html' + (params.toString() ? ('?' + params.toString()) : '');
+      });
+
+      function fillForm(doc){
+        editing = true;
+        document.getElementById('reg_no').value = doc.reg_no || '';
+        document.getElementById('title').value = doc.title || '';
+        document.getElementById('first_name').value = doc.first_name || '';
+        document.getElementById('middle_name').value = doc.middle_name || '';
+        document.getElementById('last_name').value = doc.last_name || '';
+        document.getElementById('guardian').value = doc.guardian || '';
+        document.getElementById('gender').value = doc.gender || '';
+        document.getElementById('dob').value = doc.dob || '';
+        document.getElementById('age_value').value = doc.age_value || '';
+        document.getElementById('age_unit').value = doc.age_unit || 'Years';
+        document.getElementById('cnic').value = doc.cnic || '';
+        document.getElementById('contact_number').value = doc.contact_number || '';
+        document.getElementById('address').value = doc.address || '';
+        document.getElementById('blood_group').value = doc.blood_group || '';
+        document.getElementById('referring_doctor').value = (doc.referring_doctor || 'SELF');
+        document.getElementById('patient_type').value = (doc.patient_type || 'Private');
+        document.getElementById('company_name').value = doc.company_name || '';
+        company.disabled = (document.getElementById('patient_type').value !== 'Company');
+      }
+
+      const params = new URLSearchParams(location.search);
+      if(params.get('reg_no')){
+        api('/patients/' + encodeURIComponent(params.get('reg_no')))
+          .then(fillForm)
+          .catch(e => alert('Error: ' + e.message));
+      }
+
+      document.getElementById('btnClear').addEventListener('click', () => resetForm(false));
+
+      f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = validate(f);
+        if(err){ alert(err); return; }
+        const payload = {
+          title: title.value.trim(),
+          first_name: f.first_name.value.trim(),
+          middle_name: f.middle_name.value.trim(),
+          last_name: f.last_name.value.trim(),
+          guardian: f.guardian.value.trim(),
+          gender: gender.value.trim(),
+          dob: f.dob.value.trim(),
+          age_value: f.age_value.value.trim(),
+          age_unit: f.age_unit.value.trim(),
+          cnic: f.cnic.value.trim(),
+          contact_number: f.contact_number.value.trim(),
+          address: f.address.value.trim(),
+          blood_group: f.blood_group.value.trim(),
+          referring_doctor: f.referring_doctor.value.trim(),
+          patient_type: f.patient_type.value.trim(),
+          company_name: f.company_name.value.trim()
+        };
+        try{
+          let newReg = '';
+          if(editing){
+            const reg = document.getElementById('reg_no').value.trim();
+            await api('/patients/' + encodeURIComponent(reg), { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            newReg = reg;
+            alert('Updated record: ' + reg);
+          }else{
+            const res = await api('/patients', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+            newReg = res.reg_no || '';
+            document.getElementById('reg_no').value = newReg;
+            alert('Saved with Registration No: ' + newReg);
+          }
+          resetForm(document.getElementById('addAnother').checked);
+        }catch(ex){
+          alert('Error: ' + ex.message);
+        }
+      });
+
+      loadLookups();
+    });
+  </script>
+</body>
+</html>

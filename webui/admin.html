@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Management - AMI Medical Center</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .nav-link.active { font-weight: bold; color: #0d6efd !important; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .user-list-item { cursor: pointer; transition: background 0.2s; }
+    .user-list-item:hover { background-color: #e9ecef; }
+    .user-list-item.active { background-color: #0d6efd; color: white; }
+    .rights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-white border-bottom mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="index.html">
+        <img src="/branding/logo.png" alt="Logo" class="me-2" style="height: 40px;">
+        AMI Medical Center
+      </a>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">🏠 Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="patient.html">📝 Registration</a></li>
+          <li class="nav-item"><a class="nav-link" href="invoice.html">🧾 Billing</a></li>
+          <li class="nav-item"><a class="nav-link active" href="admin.html">⚙️ Admin</a></li>
+        </ul>
+        <div class="dropdown me-3">
+          <button class="btn btn-light dropdown-toggle btn-sm fw-bold text-primary" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> <span id="userDisplay">User</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+            <li><a class="dropdown-item py-2" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold text-dark mb-0">Software Management</h2>
+      <button class="btn btn-outline-primary btn-sm" onclick="newUser()"><i class="bi bi-plus-lg"></i> New User</button>
+    </div>
+
+    <div class="row g-4">
+      <!-- User List -->
+      <div class="col-md-4">
+        <div class="card p-3 h-100">
+          <h5 class="fw-bold mb-3">Users</h5>
+          <div class="list-group list-group-flush" id="user-list">
+            <!-- Dynamic users -->
+          </div>
+        </div>
+      </div>
+
+      <!-- User Details Form -->
+      <div class="col-md-8">
+        <div class="card p-4 h-100" id="user-form-card">
+          <h5 class="fw-bold mb-4" id="form-title">User Settings</h5>
+          <form id="user-form">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" id="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" id="password" class="form-control" required>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label d-block fw-bold">Module Access Rights</label>
+              <div class="rights-grid mt-2" id="rights-container">
+                <!-- Dynamic rights -->
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Add Custom Right/Module</label>
+              <div class="input-group">
+                <input type="text" id="custom-right" class="form-control" placeholder="Module key (e.g. pharmacy)">
+                <button class="btn btn-outline-secondary" type="button" onclick="addCustomRight()">Add</button>
+              </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-between">
+              <button type="button" class="btn btn-danger" id="delete-btn" style="display:none" onclick="deleteUser()">Delete User</button>
+              <button type="submit" class="btn btn-primary px-4">Save User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const api = (p, opt={}) => fetch(p, opt).then(r => r.ok ? r.json() : r.json().then(j=>{throw new Error(j.detail || 'Error')}));
+    
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('rights');
+      window.location.href = 'login.html';
+    }
+
+    const username = localStorage.getItem('username');
+    if (!username) {
+      window.location.href = 'login.html';
+    }
+
+    let currentUsername = null;
+    let availableModules = [
+      {key: 'patient_registration', label: 'Patient Registration'},
+      {key: 'search', label: 'Search Patients'},
+      {key: 'invoice', label: 'Invoice / Service'},
+      {key: 'reports', label: 'MIS Reports'},
+      {key: 'admin', label: 'Software Management'},
+      {key: 'clinical', label: 'Clinical Management'},
+      {key: 'lab', label: 'Laboratory'},
+      {key: 'radiology', label: 'Radiology'}
+    ];
+
+    async function loadData() {
+      document.getElementById('userDisplay').textContent = username;
+      try {
+        const [users, modules] = await Promise.all([
+          api('/users'),
+          api('/modules/list')
+        ]);
+
+        // Merge dynamic modules
+        modules.forEach(m => {
+          if (!availableModules.find(am => am.key === m.key)) {
+            availableModules.push(m);
+          }
+        });
+
+        renderUserList(users);
+        renderRights();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function renderUserList(users) {
+      const list = document.getElementById('user-list');
+      list.innerHTML = '';
+      users.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item list-group-item-action user-list-item';
+        if (u.username === currentUsername) item.classList.add('active');
+        item.innerHTML = `<i class="bi bi-person-circle me-2"></i> ${u.username}`;
+        item.onclick = () => selectUser(u.username);
+        list.appendChild(item);
+      });
+    }
+
+    function renderRights() {
+      const container = document.getElementById('rights-container');
+      container.innerHTML = '';
+      availableModules.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'form-check';
+        div.innerHTML = `
+          <input class="form-check-input right-checkbox" type="checkbox" value="${m.key}" id="right-${m.key}">
+          <label class="form-check-label" for="right-${m.key}">${m.label}</label>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function selectUser(username) {
+      try {
+        currentUsername = username;
+        const user = await api(`/users/${username}`);
+        document.getElementById('username').value = user.username;
+        document.getElementById('username').readOnly = true;
+        document.getElementById('password').value = user.password;
+        document.getElementById('form-title').textContent = `Edit User: ${username}`;
+        document.getElementById('delete-btn').style.display = 'block';
+
+        // Set checkboxes
+        const rights = user.rights || [];
+        document.querySelectorAll('.right-checkbox').forEach(cb => {
+          cb.checked = rights.includes(cb.value);
+        });
+
+        // Update list active state
+        document.querySelectorAll('.user-list-item').forEach(item => {
+          item.classList.toggle('active', item.textContent.trim() === username);
+        });
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function newUser() {
+      currentUsername = null;
+      document.getElementById('user-form').reset();
+      document.getElementById('username').readOnly = false;
+      document.getElementById('form-title').textContent = 'Create New User';
+      document.getElementById('delete-btn').style.display = 'none';
+      document.querySelectorAll('.user-list-item').forEach(item => item.classList.remove('active'));
+    }
+
+    async function addCustomRight() {
+      const key = document.getElementById('custom-right').value.trim();
+      if (!key) return;
+      try {
+        await api('/modules/list', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({key, label: key})
+        });
+        document.getElementById('custom-right').value = '';
+        await loadData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    document.getElementById('user-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const rights = Array.from(document.querySelectorAll('.right-checkbox:checked')).map(cb => cb.value);
+
+      try {
+        await api('/users', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username, password, rights})
+        });
+        alert('User saved successfully');
+        await loadData();
+        selectUser(username);
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    async function deleteUser() {
+      if (!currentUsername) return;
+      if (!confirm(`Are you sure you want to delete user ${currentUsername}?`)) return;
+      try {
+        await api(`/users/${currentUsername}`, {method: 'DELETE'});
+        alert('User deleted');
+        newUser();
+        await loadData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>

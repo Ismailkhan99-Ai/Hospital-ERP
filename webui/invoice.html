@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice / Service</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#f4f7fb;}
+    .card{box-shadow:0 6px 12px rgba(25,42,62,.08);border:none}
+    .quickbox{background:#f1f6ff;border:1px solid #d8e6ff;padding:14px;border-radius:12px;box-shadow:0 6px 16px rgba(31,75,138,.08)}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-white border-bottom">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="index.html">
+        <img src="/branding/logo.png" alt="Logo" class="me-2" style="height: 40px;">
+        AMI Medical Center
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto" id="dynamicNav">
+          <!-- Dynamic Nav Items -->
+        </ul>
+        <div class="d-flex align-items-center">
+          <div id="shift_status_bar" class="me-3">
+            <button id="btnStartShift" class="btn btn-success btn-sm hidden">Start Shift</button>
+            <span id="shift_info" class="badge bg-info text-dark hidden">Shift Active</span>
+            <button id="btnEndShift" class="btn btn-danger btn-sm hidden">End Shift</button>
+          </div>
+          <div class="dropdown me-3">
+            <button class="btn btn-light dropdown-toggle btn-sm fw-bold text-primary" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> <span id="userDisplay">User</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+              <li><a class="dropdown-item py-2" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+            </ul>
+          </div>
+          <span class="navbar-text d-none d-lg-inline italic small opacity-75">"Your Health, Our Commitment."</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">Billing & Services</h4>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="quickbox mb-3">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label">Search By</label>
+              <select id="search_mode" class="form-select">
+                <option>Mobile</option>
+                <option>Registration</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">&nbsp;</label>
+              <input id="search_query" class="form-control" type="text" placeholder="Enter mobile or registration no">
+            </div>
+            <div class="col-md-3">
+              <button id="btnSearch" class="btn btn-outline-secondary w-100" type="button">Find Patient</button>
+            </div>
+            <div class="col-12">
+              <div id="searchResults" class="list-group hidden"></div>
+            </div>
+          </div>
+        </div>
+        <form id="invForm" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Registration No</label>
+            <input id="reg_no" class="form-control" type="text">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Invoice No</label>
+            <input id="invoice_no" class="form-control" type="text" readonly>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Patient Name</label>
+            <input id="patient_name" class="form-control" type="text">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Category</label>
+            <select id="category" class="form-select">
+              <option>Consultancy</option>
+              <option>LAB</option>
+              <option>Radiology</option>
+              <option>Miscellaneous</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Item</label>
+            <select id="item" class="form-select"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Doctor</label>
+            <select id="doctor" class="form-select"></select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Charges</label>
+            <input id="charges" class="form-control" type="text" inputmode="decimal">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Discount</label>
+            <input id="discount" class="form-control" type="text" inputmode="decimal" value="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Net Total</label>
+            <input id="net_total" class="form-control" type="text" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Payment Mode</label>
+            <select id="pay_mode" class="form-select">
+              <option>Cash</option>
+              <option>Card</option>
+            </select>
+          </div>
+          <div id="cardFields" class="col-12 row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Cardholder Name</label>
+              <input id="cardholder_name" class="form-control" type="text">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Card Number</label>
+              <input id="card_number" class="form-control" type="text" inputmode="numeric">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Expiry (MM/YY)</label>
+              <input id="card_expiry" class="form-control" type="text" placeholder="MM/YY">
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Remarks</label>
+            <textarea id="remarks" class="form-control" rows="2" placeholder="Optional"></textarea>
+          </div>
+          <div class="col-12 d-flex align-items-center justify-content-between mt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="addAnother">
+              <label class="form-check-label" for="addAnother">Save & Add Another</label>
+            </div>
+            <div class="toolbar">
+              <button class="btn btn-info" type="button" id="btnPrintInvoice"><i class="bi bi-printer"></i> Print Invoice</button>
+              <button class="btn btn-outline-secondary" type="button" id="btnClear"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+              <button class="btn btn-primary" type="submit" id="btnSave"><i class="bi bi-check2-circle"></i> Save Invoice</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund Modal -->
+  <div class="modal fade" id="refundModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Refund Search</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2 mb-3">
+            <div class="col-md-9">
+              <input type="text" id="refund_search_q" class="form-control" placeholder="Enter Registration No or Invoice No">
+            </div>
+            <div class="col-md-3">
+              <button id="btnSearchRefund" class="btn btn-primary w-100">Search</button>
+            </div>
+          </div>
+          <div id="refund_results" class="list-group"></div>
+          <div id="refund_details" class="mt-3 hidden">
+            <h6>Invoice Details</h6>
+            <div class="p-3 bg-light rounded mb-3">
+              <div id="refund_info_text"></div>
+              <div class="mt-3">
+                <label class="form-label">Refund Remarks</label>
+                <textarea id="refund_remarks" class="form-control" rows="2" placeholder="Enter reason for refund"></textarea>
+              </div>
+            </div>
+            <button id="btnConfirmRefund" class="btn btn-warning w-100">Process Refund</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shift Summary Modal -->
+  <div class="modal fade" id="summaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Shift Sale Summary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="summary_content">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="window.print()">Print Summary</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const api = (p, opt={}) => fetch(p, opt).then(r => r.ok ? r.json() : r.json().then(j=>{throw new Error(j.detail || 'Error')}));
+
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('rights');
+      window.location.href = 'login.html';
+    }
+
+    const username = localStorage.getItem('username');
+    if (!username) {
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('userDisplay').textContent = username;
+      const params = new URLSearchParams(location.search);
+      const refundModal = new bootstrap.Modal(document.getElementById('refundModal'));
+      const summaryModal = new bootstrap.Modal(document.getElementById('summaryModal'));
+      const printModal = new bootstrap.Modal(document.getElementById('printModal'));
+
+      function computeNet(){
+        const c = parseFloat(document.getElementById('charges').value || '0') || 0;
+        let d = parseFloat(document.getElementById('discount').value || '0') || 0;
+        if(d < 0) d = 0;
+        const net = Math.max(c - d, 0);
+        document.getElementById('net_total').value = net.toFixed(2);
+      }
+
+      function updateCardVisibility(){
+        const on = document.getElementById('pay_mode').value === 'Card';
+        document.getElementById('cardFields').style.display = on ? 'flex' : 'none';
+      }
+
+      function toggleRemarks(){
+        const d = parseFloat(document.getElementById('discount').value || '0') || 0;
+        const el = document.getElementById('remarks');
+        if(d > 0 && !el.value.trim()) el.placeholder = 'Enter reason for discount';
+      }
+
+      async function refreshItems(){
+        const cat = document.getElementById('category').value;
+        const itemSel = document.getElementById('item');
+        const docSel = document.getElementById('doctor');
+        itemSel.innerHTML = '';
+        docSel.innerHTML = '';
+        docSel.disabled = false;
+        
+        if(cat === 'Consultancy'){
+          const ds = await api('/lookups/doctors-with-fee');
+          ds.forEach(d => { const o = document.createElement('option'); o.textContent = d.name; o.value = d.name; docSel.appendChild(o); });
+          const fee = (ds && ds.length) ? (parseFloat(ds[0].fee)||0) : 0;
+          document.getElementById('charges').value = fee;
+          itemSel.innerHTML = '<option value="Consultancy Fee">Consultancy Fee</option>';
+          computeNet();
+        }else if(cat === 'LAB'){
+          const tests = await api('/lookups/lab-tests');
+          tests.forEach(t => { const o = document.createElement('option'); o.textContent = t.name; o.value = t.name; itemSel.appendChild(o); });
+          docSel.disabled = true;
+          if(tests.length){ const pr = await api('/price?collection=lab_tests&name=' + encodeURIComponent(tests[0].name)); document.getElementById('charges').value = pr.price || 0; }
+          else { document.getElementById('charges').value = 0; }
+          computeNet();
+        }else if(cat === 'Radiology'){
+          const rs = await api('/lookups/radiology');
+          rs.forEach(r => { const o = document.createElement('option'); o.textContent = r.name; o.value = r.name; itemSel.appendChild(o); });
+          docSel.disabled = true;
+          if(rs.length){ const pr = await api('/price?collection=radiology_services&name=' + encodeURIComponent(rs[0].name)); document.getElementById('charges').value = pr.price || 0; }
+          else { document.getElementById('charges').value = 0; }
+          computeNet();
+        }else{ // Miscellaneous
+          const ms = await api('/lookups/misc');
+          let base = (ms || []).map(m => m.name);
+          if(!base.length) base = ['Dressing','Injection charges'];
+          base.forEach(n => { const o = document.createElement('option'); o.textContent = n; o.value = n; itemSel.appendChild(o); });
+          docSel.disabled = true;
+          const first = base[0]; if(first){ const pr = await api('/price?collection=misc_services&name=' + encodeURIComponent(first)); document.getElementById('charges').value = pr.price || 0; } else { document.getElementById('charges').value = 0; }
+          computeNet();
+        }
+      }
+
+      async function onItemChange(){
+        const cat = document.getElementById('category').value;
+        const item = document.getElementById('item').value;
+        if(!item){ document.getElementById('charges').value = 0; computeNet(); return; }
+        if(cat === 'LAB'){
+          const pr = await api('/price?collection=lab_tests&name=' + encodeURIComponent(item)); document.getElementById('charges').value = pr.price || 0;
+        }else if(cat === 'Radiology'){
+          const pr = await api('/price?collection=radiology_services&name=' + encodeURIComponent(item)); document.getElementById('charges').value = pr.price || 0;
+        }else if(cat === 'Miscellaneous'){
+          const pr = await api('/price?collection=misc_services&name=' + encodeURIComponent(item)); document.getElementById('charges').value = pr.price || 0;
+        }
+        computeNet();
+      }
+
+      async function onDoctorChange(){
+        const ds = await api('/lookups/doctors-with-fee');
+        const sel = document.getElementById('doctor').value;
+        let fee = 0; ds.forEach(d => { if(d.name === sel){ fee = parseFloat(d.fee)||0; } });
+        document.getElementById('charges').value = fee;
+        computeNet();
+      }
+
+      function last4(num){ const digits = (num||'').replace(/\D/g,''); return digits.slice(-4); }
+
+      async function loadNavigation() {
+        const navCont = document.getElementById('dynamicNav');
+        navCont.innerHTML = '';
+        let userRights = ['patient_registration', 'invoice', 'search', 'reports'];
+        if (username === 'admin') userRights = ['*'];
+        const hasRight = (key) => userRights.includes('*') || userRights.includes(key);
+        const navConfig = [
+          {key: 'dashboard', icon: '🏠', label: 'Home', href: 'index.html'},
+          {key: 'patient_registration', icon: '📝', label: 'Registration', href: 'patient.html'},
+          {key: 'clinical', icon: '🧑‍⚕️', label: 'Clinical', href: 'clinical.html'},
+          {key: 'invoice', icon: '🧾', label: 'Billing', href: 'invoice.html'},
+          {key: 'search', icon: '🔍', label: 'Search', href: 'search.html'},
+          {key: 'reports', icon: '📊', label: 'Reports', href: 'reports.html'},
+        ];
+        navConfig.forEach(n => {
+          if (n.key === 'dashboard' || hasRight(n.key)) {
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            const isActive = window.location.pathname.includes(n.href);
+            li.innerHTML = `<a class="nav-link ${isActive ? 'active' : ''}" href="${n.href}">${n.icon} ${n.label}</a>`;
+            navCont.appendChild(li);
+          }
+        });
+      }
+
+      async function checkShift() {
+        try {
+          const res = await api(`/shifts/current?username=${username}`);
+          if (res.active) {
+            document.getElementById('btnStartShift').classList.add('hidden');
+            document.getElementById('shift_info').classList.remove('hidden');
+            document.getElementById('shift_info').textContent = `Shift Active since ${new Date(res.start_time).toLocaleTimeString()}`;
+            document.getElementById('btnEndShift').classList.remove('hidden');
+          } else {
+            document.getElementById('btnStartShift').classList.remove('hidden');
+            document.getElementById('shift_info').classList.add('hidden');
+            document.getElementById('btnEndShift').classList.add('hidden');
+          }
+        } catch (e) { console.error(e); }
+      }
+
+      async function patientLookup(){
+        const mode = document.getElementById('search_mode').value;
+        const q = document.getElementById('search_query').value.trim();
+        const box = document.getElementById('searchResults');
+        box.innerHTML = ''; box.classList.add('hidden');
+        if(!q) return;
+        let url = '/patients?' + (mode === 'Mobile' ? 'mobile=' : 'reg_no=') + encodeURIComponent(q);
+        try{
+          const rows = await api(url);
+          rows.forEach(r => {
+            const a = document.createElement('a');
+            a.className = 'list-group-item list-group-item-action';
+            const fullName = [r.title, r.first_name, r.middle_name, r.last_name].filter(Boolean).join(' ');
+            a.textContent = `${r.reg_no || ''} — ${fullName} (${r.contact_number || ''})`;
+            a.addEventListener('click', () => {
+              document.getElementById('reg_no').value = r.reg_no || '';
+              document.getElementById('patient_name').value = fullName;
+              box.classList.add('hidden');
+            });
+            box.appendChild(a);
+          });
+          if(rows.length) box.classList.remove('hidden');
+        }catch(e){ alert('Error: ' + e.message); }
+      }
+
+      async function searchRefundInvoices(){
+        const q = document.getElementById('refund_search_q').value.trim();
+        const box = document.getElementById('refund_results');
+        const det = document.getElementById('refund_details');
+        box.innerHTML = ''; det.classList.add('hidden');
+        if(!q) return;
+        try{
+          const rows = await api(`/invoices?reg_no=${encodeURIComponent(q)}&invoice_no=${encodeURIComponent(q)}`);
+          rows.forEach(r => {
+            const a = document.createElement('a');
+            a.className = 'list-group-item list-group-item-action';
+            a.textContent = `${r.invoice_no} | ${r.patient_name} | ${r.category}/${r.item_name} | Net: ${r.net_total} | ${r.created_at}` + (r.refunded ? ' (refunded)' : '');
+            a.addEventListener('click', () => {
+              if (r.refunded) { alert('Invoice already refunded'); return; }
+              currentRefundInvoiceId = r.invoice_id;
+              document.getElementById('refund_info_text').innerHTML = `
+                <b>Invoice:</b> ${r.invoice_no}<br>
+                <b>Patient:</b> ${r.patient_name}<br>
+                <b>Item:</b> ${r.item_name}<br>
+                <b>Net Amount:</b> ${r.net_total}
+              `;
+              det.classList.remove('hidden');
+            });
+            box.appendChild(a);
+          });
+          if(!rows.length) alert('No matching invoices found');
+        }catch(e){ alert('Error: ' + e.message); }
+      }
+
+      // Initial calls
+      await loadNavigation();
+      await checkShift();
+      await refreshItems();
+      updateCardVisibility();
+
+      if(params.get('reg_no')) document.getElementById('reg_no').value = params.get('reg_no');
+      if(params.get('patient_name')) document.getElementById('patient_name').value = params.get('patient_name');
+
+      // Event listeners
+      document.getElementById('btnPrintInvoice').addEventListener('click', () => printModal.show());
+      document.getElementById('searchInvoiceBtn').addEventListener('click', async () => {
+        const query = document.getElementById('searchInvoiceQuery').value.trim();
+        const list = document.getElementById('invoiceList');
+        list.innerHTML = '';
+        if(!query) return;
+        try {
+          const invoices = await api(`/invoices?reg_no=${query}&invoice_no=${query}`);
+          invoices.forEach(inv => {
+            const a = document.createElement('a');
+            a.href = inv.pdf;
+            a.target = '_blank';
+            a.className = 'list-group-item list-group-item-action';
+            a.textContent = `Invoice #${inv.invoice_no} - ${inv.patient_name} (${inv.item_name})`;
+            list.appendChild(a);
+          });
+          if(!invoices.length) list.innerHTML = '<div class="list-group-item">No invoices found</div>';
+        } catch(e) { alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('btnStartShift').addEventListener('click', async () => {
+        try {
+          await api('/shifts/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
+          await checkShift();
+          alert('Shift started');
+        } catch (e) { alert(e.message); }
+      });
+
+      document.getElementById('btnEndShift').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to end your shift and view summary?')) return;
+        try {
+          const res = await api('/shifts/end', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
+          const s = res.summary;
+          let invHtml = s.invoices.map(i => `<tr><td>${i.reg_no}</td><td>${i.patient_name}</td><td>${i.service}</td><td class="text-end">${i.discount.toFixed(2)}</td><td class="text-end">${i.amount.toFixed(2)}</td></tr>`).join('');
+          let refHtml = s.refunds.map(r => `<tr><td>${r.reg_no}</td><td>${r.patient_name}</td><td>${r.reason}</td><td class="text-end">${r.amount.toFixed(2)}</td></tr>`).join('');
+          document.getElementById('summary_content').innerHTML = `
+            <div class="mb-3 p-2 bg-light rounded border">
+              <div class="row">
+                <div class="col-6"><b>User:</b> ${username}</div>
+                <div class="col-6 text-end"><b>Shift End:</b> ${new Date().toLocaleString()}</div>
+              </div>
+            </div>
+            <h6>Service Details</h6>
+            <table class="table table-sm border mb-3">
+              <thead><tr><th>Reg No</th><th>Patient</th><th>Service</th><th class="text-end">Discount</th><th class="text-end">Amount</th></tr></thead>
+              <tbody>${invHtml || '<tr><td colspan="5" class="text-center">No services</td></tr>'}</tbody>
+            </table>
+            <h6>Refund Details</h6>
+            <table class="table table-sm border mb-3">
+              <thead><tr><th>Reg No</th><th>Patient</th><th>Reason</th><th class="text-end">Amount</th></tr></thead>
+              <tbody>${refHtml || '<tr><td colspan="4" class="text-center">No refunds</td></tr>'}</tbody>
+            </table>
+            <div class="row">
+              <div class="col-md-6 offset-md-6">
+                <table class="table table-bordered table-sm">
+                  <tr><th class="bg-light">Total Discount</th><td class="text-end fw-bold text-danger">${s.total_discount.toFixed(2)}</td></tr>
+                  <tr><th class="bg-light">Gross Cash</th><td class="text-end fw-bold">${(s.cash_received + s.card_received).toFixed(2)}</td></tr>
+                  <tr><th class="bg-light">Total Refund</th><td class="text-end fw-bold text-danger">${s.total_refunded.toFixed(2)}</td></tr>
+                  <tr class="table-primary"><th class="fw-bold">Net Collection</th><td class="text-end fw-bold">${s.net_collection.toFixed(2)}</td></tr>
+                </table>
+              </div>
+            </div>
+          `;
+          summaryModal.show();
+          await checkShift();
+        } catch (e) { alert(e.message); }
+      });
+
+      document.getElementById('charges').addEventListener('input', computeNet);
+      document.getElementById('discount').addEventListener('input', () => { computeNet(); toggleRemarks(); });
+      document.getElementById('pay_mode').addEventListener('change', updateCardVisibility);
+      document.getElementById('category').addEventListener('change', refreshItems);
+      document.getElementById('item').addEventListener('change', onItemChange);
+      document.getElementById('doctor').addEventListener('change', onDoctorChange);
+      document.getElementById('btnSearch').addEventListener('click', patientLookup);
+      document.getElementById('btnSearchRefund').addEventListener('click', searchRefundInvoices);
+
+      let currentRefundInvoiceId = '';
+      document.getElementById('btnConfirmRefund').addEventListener('click', async () => {
+        const reason = document.getElementById('refund_remarks').value.trim();
+        if(!reason){ alert('Refund remarks are required'); return; }
+        try{
+          await api('/invoices/refund', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ invoice_id: currentRefundInvoiceId, reason }) });
+          alert('Refund processed successfully');
+          refundModal.hide();
+        }catch(e){ alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('invForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const reg_no = document.getElementById('reg_no').value.trim();
+        const patient_name = document.getElementById('patient_name').value.trim();
+        const category = document.getElementById('category').value.trim();
+        const item_name = document.getElementById('item').value.trim();
+        const doctor_name = document.getElementById('doctor').value.trim();
+        const charges = parseFloat(document.getElementById('charges').value || '0') || 0;
+        let discount = parseFloat(document.getElementById('discount').value || '0') || 0;
+        if(discount < 0) discount = 0;
+        const payment_mode = document.getElementById('pay_mode').value.trim();
+        const remarks = document.getElementById('remarks').value.trim();
+        const payload = { reg_no, patient_name, category, item_name, doctor_name, charges, discount, payment_mode, remarks };
+        if(payment_mode === 'Card'){
+          const ch = document.getElementById('cardholder_name').value.trim();
+          const num = document.getElementById('card_number').value.trim();
+          const exp = document.getElementById('card_expiry').value.trim();
+          if(!ch || (num.replace(/\D/g,'').length < 12) || !exp){ alert('Enter cardholder, valid card number, and expiry'); return; }
+          payload.cardholder_name = ch;
+          payload.card_last4 = last4(num);
+          payload.card_expiry = exp;
+        }
+        if(!reg_no || !category || !item_name){ alert('Select category and item; ensure Registration No is present'); return; }
+        try{
+          const res = await api('/invoices', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          if(res.pdf){ window.open(res.pdf, '_blank'); }
+          alert('Invoice saved #' + (res.invoice_no || res.invoice_id) + ' | Net: ' + (res.net_total ?? 0));
+          location.reload(); // Automatically refresh for next patient
+        }catch(ex){
+          alert('Error: ' + ex.message);
+        }
+      });
+
+      // preview invoice number
+      try{
+        const pv = await api('/invoices/preview');
+        if(pv && pv.invoice_no){ document.getElementById('invoice_no').value = pv.invoice_no; }
+      }catch(e){ /* ignore */ }
+    });
+  </script>
+  <div class="modal fade" id="printModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Print Invoice</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Enter Invoice No or Reg No" id="searchInvoiceQuery">
+            <button class="btn btn-primary" type="button" id="searchInvoiceBtn">Search</button>
+          </div>
+          <div id="invoiceList" class="list-group"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
