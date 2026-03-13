@@ -1,0 +1,11 @@
+# HOW TO SYNC YOUR CHANGES TO GITHUB
+# Copy and paste these commands into your terminal one by one:
+
+# 1. Prepare all modified files for the update
+git add .
+
+# 2. Save the changes with a short note describing what you did
+git commit -m "Updated project files"
+
+# 3. Send the changes to your GitHub account
+git push
